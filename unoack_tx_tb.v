@@ -5,7 +5,7 @@ module unpack_tx();
   reg [2:0]datawidthsel;
   wire dout;
 
-  DUT unpack_tx T1(clk,rstn,din,datawidthsel,dout);
+  unpack_tx DUT(clk,rstn,din,datawidthsel,dout);
 
   forever #5 clk=~clk; //clock generation
   
