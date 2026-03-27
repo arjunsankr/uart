@@ -7,9 +7,12 @@ module unpack_tx();
 
   DUT unpack_tx T1(clk,rstn,din,datawidthsel,dout);
 
-  forever clk=
-  initial begin
-     rstn=1'b0;
-     
-
+  forever #5 clk=~clk; //clock generation
   
+  initial 
+    begin
+      #10 rstn=1'b0;
+      #10 rsntn=1'b1;
+      din=8'b10110110;
+      dataselectwidth=2'b00;
+    end
