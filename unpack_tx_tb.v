@@ -1,4 +1,4 @@
-module unpack_tx();
+module unpack_tx_tb();
   reg clk;
   reg rstn;
   reg [7:0]din;
