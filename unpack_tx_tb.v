@@ -1,18 +1,40 @@
-module unpack_tx_tb();
-  reg clk;
-  reg rstn;
-  reg [7:0]din;
-  reg [2:0]datawidthsel;
-  wire dout;
+  // Code your testbench here
+  // or browse Examples
+  module unpack_tx_tb();
+    reg clk;
+    reg rstn;
+    reg [7:0]din;
+    reg [1:0]datawidthsel;
+    wire dout;
 
-  unpack_tx DUT(clk,rstn,din,datawidthsel,dout);
+    unpack_tx DUT(clk,rstn,din,datawidthsel,dout);
 
-  forever #5 clk=~clk; //clock generation
+    //clock generation
+    initial 
+      begin
+        clk=1'b0;
+        forever #5 clk=~clk;
+      end
+
+    //dump waves
+    initial
+      begin
+        $dumpfile("dump.vcd");
+        $dumpvars(1);
+      end
   
-  initial 
-    begin
-      #10 rstn=1'b0;
-      #10 rsntn=1'b1;
-      din=8'b10110110;
-      dataselectwidth=2'b00;
+
+    //inputs
+    initial 
+      begin
+        rstn=1'b0;
+        #10 rstn=1'b1;
+        din=8'b10110111;
+        datawidthsel=2'b00;
+        #1000 $finish;
+      end
+    always @(posedge clk)begin
+      $display("Time=%0t | rstn=%b | din=%b | datawidthsel=%b | dout=%b", 
+           $time, rstn, din, datawidthsel, dout);
     end
+  endmodule
