@@ -36,7 +36,7 @@ module unpack_tx(
           begin
                if(start)
                  begin
-                 data<+din;
+                 data<=din;
                      dout<=din[0];
                  end
               else
