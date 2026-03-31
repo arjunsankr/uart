@@ -24,8 +24,8 @@ module unpack_tx(
         // Load data width and start transmission
         case(datawidthsel)
           2'b00: dindex <= 3'b100;  // 5 bits
-          2'b01: dindex <= 3'b101;
-          2'b10: dindex <= 3'b110;  
+          2'b01: dindex <= 3'b101;  // 6 bits    
+          2'b10: dindex <= 3'b110;  // 7  bits
           2'b11: dindex <= 3'b111;  // 8 bits
         endcase
       end
