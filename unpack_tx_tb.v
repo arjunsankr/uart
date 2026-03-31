@@ -37,7 +37,6 @@ module unpack_tx_tb;
     #10 rstn = 0;
     #10 rstn = 1;
 
-    // Test Case 1: 5-bit transmission (datawidthsel = 2'b00)
     $display("\n=== Test Case 1: 5-bit transmission ===");
     din = 8'b10101010;
     datawidthsel = 2'b00;
