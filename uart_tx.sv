@@ -11,11 +11,14 @@ module uart_tx(
   output logic tx_ready_o,
   output logic tx_busy_o
 );
+
+  //internal registers 
   logic [7:0]tx_shift_reg_q;// for internal shifting of data
   logic [2:0]bit_cnt_q;// to count number of bits
   logic [2:0]data_bit_max; //Max index
   //logic [3:0]tick_cnt_q;
   logic parity_bit; //calculated parity value
+  logic [2:0]dindex;
   
   always @(posedge clk_i negedge rst_n_i)
     begin 
@@ -39,13 +42,13 @@ module uart_tx(
       if (start) begin
         // Load data width and start transmission
         case(data_bits_i)
-          2'b00: bit_cnt_q <= 3'b100;  // 5 bits
+          2'b00: bit_cnt_q <= 3'b100;// 5 bits
           2'b01: bit_cnt_q<= 3'b101;  // 6 bits    
           2'b10: bit_cnt_q <= 3'b110;  // 7  bits
           2'b11: bit_cnt_q <= 3'b111;  // 8 bits
         endcase
       end
-      else if (bit_cnt_q >= 0) begin
+      else if (bit_cnt_q >0) begin
         bit_cnt_q<= bit_cnt_q - 1;
       end
       else
@@ -54,8 +57,9 @@ module uart_tx(
   end 
   
   //parity bit calculation
-  always@(start)
+  always@(data_valid_i)
     begin
+      dindex<=bit_cnt_q;
       tx_shift_reg_q = data_i;
       if(parity_i==3'b000)
         parity_bit <= ^tx_shift_reg_q;
@@ -70,8 +74,11 @@ module uart_tx(
   //output logic
   always@(baud_tick_i)
     begin
-      if(bis_cnt_q==0)
-        tx_o<=parity_bit;
+      if(bit_cnt_q==0)
+        begin 
+          tx_o<=parity_bit;
+          bit_cnt_q<=dindex;
+        end
       else 
         begin
           tx_o<={tx_shift_reg_i[0],[7:1]tx_shift_reg_i};
