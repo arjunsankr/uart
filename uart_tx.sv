@@ -19,18 +19,6 @@ module uart_tx(
   //logic [3:0]tick_cnt_q;
   logic parity_bit; //calculated parity value
   logic [2:0]dindex;
-
-  //reset logic
-  always @(posedge clk_i or negedge rst_n_i)
-    begin 
-      if (!rst_n_i)
-        begin 
-          //tx_o<= 1'b1; 
-          tx_ready_o<= 1'b1;
-          //bit_cnt_q<= 3'b0;
-          //parity_bit<= 1'b0;
-        end
-    end
   
 //data index selection
   always @(posedge clk_i or negedge rst_n_i)
@@ -47,7 +35,7 @@ module uart_tx(
           2'b10: bit_cnt_q <= 3'b110;  // 7  bits
           2'b11: bit_cnt_q <= 3'b111;  // 8 bits
         endcase
-        dindex<=bit_cnt_i
+        dindex<=bit_cnt_q;
       end
       else if (bit_cnt_q >0) begin
         bit_cnt_q<= bit_cnt_q - 1;
@@ -56,12 +44,16 @@ module uart_tx(
   end 
   
   //parity bit calculation
-  always@(data_valid_i)
+  always@(posedge clk_i or negedge rst_n_i)
     begin
-      if(parity_i==3'b000)
-        parity_bit <= ^tx_shift_reg_q;
+      if (!rst_n_i)
+        begin 
+          parity_bit<=0;
+        end
+      else if(parity_i==3'b000)
+        parity_bit <= ^data_i;
       else if(parity_i==3'b001)
-        parity_bit<=~^tx_shift_reg_q;
+        parity_bit<=~^data_i;
       else if(parity_i==3'b010)
         parity_bit<=1'b1; //mark parity
       else if (parity_i==3'b011)
@@ -69,16 +61,23 @@ module uart_tx(
     end
 
   //output logic
-  always@(baud_tick_i)
+  always@(posedge clk_i or negedge rst_n_i)
     begin
-      if(bit_cnt_q==0)
+      if(!rst_n_i)
+        begin
+          tx_shift_reg_q<=0;
+          tx_o<=0;
+        end
+      else if(data_valid_i)
+        tx_shift_reg_q<=data_i;
+      else if(bit_cnt_q>0)
         begin 
-          tx_o<=parity_bit;
+          tx_o<=tx_shift_reg_q[0];
+          tx_shift_reg_q<={1'b0,tx_shift_reg_q[7:1]};
         end
       else 
         begin
-          tx_o<=tx_shift_reg_q[0];
-          tx_shift_reg_q<={1'b0,tx_shift_reg_q[7:1]};
+          tx_o<=parity_bit;
         end
     end
 endmodule
