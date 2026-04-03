@@ -70,5 +70,12 @@ module uart_tx(
   //output logic
   always@(baud_tick_i)
     begin
-      
+      if(bis_cnt_q==0)
+        tx_o<=parity_bit;
+      else 
+        begin
+          tx_o<={tx_shift_reg_i[0],[7:1]tx_shift_reg_i};
+          bit_cnt_q<=bit_cnt_q-1;
+        end
+    end
 endmodule
