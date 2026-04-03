@@ -6,7 +6,7 @@ module uart_tx(
   input logic data_valid_i,
   //input logic stop_bits_i,
   input logic [2:0]parity_i,
-  input logic [1:0]data_bits_i;
+  input logic [1:0]data_bits_i,
   output logic tx_o,
   output logic tx_ready_o,
   output logic tx_busy_o
@@ -19,27 +19,27 @@ module uart_tx(
   //logic [3:0]tick_cnt_q;
   logic parity_bit; //calculated parity value
   logic [2:0]dindex;
-  
-  always @(posedge clk_i negedge rst_n_i)
+
+  //reset logic
+  always @(posedge clk_i or negedge rst_n_i)
     begin 
-      if (rst_n_i)
+      if (!rst_n_i)
         begin 
-          tx_o<= 1'b1; 
+          //tx_o<= 1'b1; 
           tx_ready_o<= 1'b1;
-          bit_cnt_q<= 3'b0;
-          data_i<= 8'b0;
-          parity_bit<= 1'b0;
+          //bit_cnt_q<= 3'b0;
+          //parity_bit<= 1'b0;
         end
     end
   
 //data index selection
-  always @(posedge clk_i, negedge rst_n_i)
+  always @(posedge clk_i or negedge rst_n_i)
   begin
     if (!rst_n_i) begin
       bit_cnt_q<= 3'b000;
     end
     else begin
-      if (start) begin
+      if (data_valid_i) begin
         // Load data width and start transmission
         case(data_bits_i)
           2'b00: bit_cnt_q <= 3'b100;// 5 bits
@@ -47,20 +47,17 @@ module uart_tx(
           2'b10: bit_cnt_q <= 3'b110;  // 7  bits
           2'b11: bit_cnt_q <= 3'b111;  // 8 bits
         endcase
+        dindex<=bit_cnt_i
       end
       else if (bit_cnt_q >0) begin
         bit_cnt_q<= bit_cnt_q - 1;
       end
-      else
-        tx_o<=parity_bit;
     end
   end 
   
   //parity bit calculation
   always@(data_valid_i)
     begin
-      dindex<=bit_cnt_q;
-      tx_shift_reg_q = data_i;
       if(parity_i==3'b000)
         parity_bit <= ^tx_shift_reg_q;
       else if(parity_i==3'b001)
@@ -77,12 +74,11 @@ module uart_tx(
       if(bit_cnt_q==0)
         begin 
           tx_o<=parity_bit;
-          bit_cnt_q<=dindex;
         end
       else 
         begin
-          tx_o<={tx_shift_reg_i[0],[7:1]tx_shift_reg_i};
-          bit_cnt_q<=bit_cnt_q-1;
+          tx_o<=tx_shift_reg_q[0];
+          tx_shift_reg_q<={1'b0,tx_shift_reg_q[7:1]};
         end
     end
 endmodule
