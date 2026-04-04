@@ -4,7 +4,7 @@ module uart_tx(
   input logic baud_tick_i,
   input logic [7:0]data_i,
   input logic data_valid_i,
-  //input logic stop_bits_i,
+  //input logic stop_bits_i,d
   input logic [2:0]parity_i,
   input logic [1:0]data_bits_i,
   output logic tx_o,
