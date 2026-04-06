@@ -18,7 +18,6 @@ module uart_tx(
   logic [2:0]data_bit_max; //Max index
   //logic [3:0]tick_cnt_q;
   logic parity_bit; //calculated parity value
-  logic [2:0]dindex;
   
 //data index selection
   always @(posedge clk_i or negedge rst_n_i)
@@ -35,7 +34,6 @@ module uart_tx(
           2'b10: bit_cnt_q <= 3'b110;  // 7  bits
           2'b11: bit_cnt_q <= 3'b111;  // 8 bits
         endcase
-        dindex<=bit_cnt_q;
       end
       else if (bit_cnt_q >0) begin
         bit_cnt_q<= bit_cnt_q - 1;
