@@ -23,19 +23,19 @@ module uart_rx(
   always @(posedge clk_i or negedge rst_n_i)
   begin
     if (!rst_n_i) begin
-      bit_cnt_q<= 3'b000;
+      data_bit_max<= 3'b000;
     end
     else begin
       if (start) begin   // changed from data_valid_i
         case(data_bits_i)
-          2'b00: bit_cnt_q <= 3'b100;// 5 bits
-          2'b01: bit_cnt_q<= 3'b101;  // 6 bits    
-          2'b10: bit_cnt_q <= 3'b110;  // 7  bits
-          2'b11: bit_cnt_q <= 3'b111;  // 8 bits
+          2'b00: data_bit_max <= 3'b100;  // 5 bits
+          2'b01: data_bit_max <= 3'b101;  // 6 bits    
+          2'b10: data_bit_max <= 3'b110;  // 7  bits
+          2'b11: data_bit_max <= 3'b111;  // 8 bits
         endcase
       end
-      else if (bit_cnt_q >0) begin
-        bit_cnt_q<= bit_cnt_q - 1;
+      else if (bit_cnt_q <=data_bit_max)begin
+        bit_cnt_q<= bit_cnt_q +1;
       end
     end
   end 
@@ -47,14 +47,15 @@ module uart_rx(
         begin 
           parity_bit<=0;
         end
-      else if(parity_i==3'b000)
-        parity_bit <= ^rx_shift_reg_q;
-      else if(parity_i==3'b001)
-        parity_bit<=~^rx_shift_reg_q;
-      else if(parity_i==3'b010)
-        parity_bit<=1'b1; //mark parity
-      else if (parity_i==3'b011)
-        parity_bit<=1'b0;
+      else if(data_valid_o)
+        begin
+          case(parity_i)
+            3'b000:parity_bit<=^data_o; //pdd
+            3'b001:parity_bit<=~^data_o; //evem
+            3'b010:parity_bit<=1'b1; //mark
+            3'b011:parity_bit<=1'b0; //space
+          endcase
+    end
     end
 
   //output logic
@@ -67,13 +68,13 @@ module uart_rx(
         end
       else
         begin
-          if(baud_tick_i && bit_cnt_q>0 )begin   // changed from data_valid_i
-            rx_shift_reg_q <= {rx_i, rx_shift_reg_q[7:1]}; // shift in
+          if(baud_tick_i && bit_cnt_q <=data_bit_max )begin  
+            rx_shift_reg_q[bit_cnt_q] <=rx_i; 
           /*else if(baud_tick_i && bit_cnt_q==0)
         begin 
           rx_shift_reg_q <= {rx_i, rx_shift_reg_q[7:1]};*/
         end
-      else 
+          else if(baud_tick_i) 
         begin
           data_o <= rx_shift_reg_q;
         end
