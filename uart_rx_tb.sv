@@ -57,8 +57,8 @@ module tb_uart_rx;
     integer i;
     begin
       for (i = 0; i < 8; i = i + 1) begin
-        rx_i = data[i];
         @(posedge baud_tick_i);
+        rx_i = data[i];
       end
     end
   endtask
@@ -66,7 +66,7 @@ module tb_uart_rx;
 
   always @(posedge clk_i)
 	begin
-    $display("time=%0t data: %b | shift reg=%b | bit_cnt_q=%b",$time, data_o,dut.rx_shift_reg_q,dut.bit_cnt_q);
+      $display("time=%0t data: %b | shift reg=%b | rx_i=%b bit_cnt_q=%b",$time, data_o,dut.rx_shift_reg_q,rx_i,dut.bit_cnt_q);
 
     /*#100;
     $display("Sending 0x3C serially");
@@ -81,7 +81,7 @@ module tb_uart_rx;
   initial begin
     $dumpfile("uart_rx_tb.vcd");
     $dumpvars(0, tb_uart_rx);
-    #100$finish;
+    #200$finish;
   end
 
 endmodule
