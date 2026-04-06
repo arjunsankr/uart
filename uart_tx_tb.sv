@@ -61,8 +61,8 @@ end
 
   // Monitor TX output
   always@(posedge clk_i) begin
-    $display("Time=%0t | tx_o=%b | busy=%b | parity=%b | bit_cnt_q=%b",
-              $time, tx_o, tx_busy_o,dut.parity_bit,dut.bit_cnt_q);
+    $display("Time=%0t | tx_o=%b | busy=%b | parity=%b | bit_cnt_q=%b |",
+             $time, tx_o, tx_busy_o,dut.parity_bit,dut.bit_cnt_q);
   end
 
   // Stimulus
