@@ -67,17 +67,25 @@ module uart_tx(
         begin
           tx_shift_reg_q<=0;
           tx_o<=0;
+          parity_bit<=0;
         end
-      else if(data_valid_i)
-        tx_shift_reg_q<=data_i;
-      else if(bit_cnt_q>0)
+      else 
+        begin
+         if(data_valid_i)
+          begin
+            tx_shift_reg_q<=data_i;
+            tx_o <= data_i[0];
+            tx_shift_reg_q <= {1'b0, data_i[7:1]};
+          end
+      	 else if(baud_tick_i && bit_cnt_q>0)
         begin 
           tx_o<=tx_shift_reg_q[0];
           tx_shift_reg_q<={1'b0,tx_shift_reg_q[7:1]};
         end
-      else 
+      else if(baud_tick_i && bit_cnt_q==0) 
         begin
           tx_o<=parity_bit;
         end
+    end
     end
 endmodule
