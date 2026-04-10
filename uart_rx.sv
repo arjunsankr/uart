@@ -34,7 +34,7 @@ module uart_rx(
           2'b11: data_bit_max <= 3'b111;  // 8 bits
         endcase
       end
-      else if (bit_cnt_q <=data_bit_max)begin
+      else if (baud_tick_i && bit_cnt_q <=data_bit_max)begin
         bit_cnt_q<= bit_cnt_q +1;
       end
     end
@@ -68,13 +68,13 @@ module uart_rx(
         end
       else
         begin
-          if(baud_tick_i && bit_cnt_q <=data_bit_max )begin  
+          if(baud_tick_i && bit_cnt_q <data_bit_max )begin  
             rx_shift_reg_q[bit_cnt_q] <=rx_i; 
           /*else if(baud_tick_i && bit_cnt_q==0)
         begin 
           rx_shift_reg_q <= {rx_i, rx_shift_reg_q[7:1]};*/
         end
-          else if(baud_tick_i) 
+          else if(baud_tick_i && bit_cnt_q==data_bit_max) 
         begin
           data_o <= rx_shift_reg_q;
         end
