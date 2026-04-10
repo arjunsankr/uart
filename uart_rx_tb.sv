@@ -31,22 +31,18 @@ module tb_uart_rx;
   // Reset sequence
 
   initial begin
-    rst_n_i = 1;
-    baud_tick_i = 0;
-    start=1'b1;
-    #10 start=0;
-    rx_i = 1; // idle high
-    parity_i = 3'b000;
-    data_bits_i = 2'b11; // 8 bits
-    send_serial(8'b10110111);
-
-    #10;
     rst_n_i = 0;
-    #10 rst_n_i=1;
+    rx_i = 1;
+    #5rst_n_i = 1;
+    start=1'b1;
+    data_bits_i = 2'b11;
+    #5 start=0;
+	parity_i = 3'b000;
+    send_serial(8'b10110111); 
   end
 
   // Generate baud tick
-  
+  	  initial baud_tick_i = 0;
       always #5 baud_tick_i =~baud_tick_i;
 
 
@@ -66,7 +62,7 @@ module tb_uart_rx;
 
   always @(posedge clk_i)
 	begin
-      $display("time=%0t data: %b | shift reg=%b | rx_i=%b bit_cnt_q=%b",$time, data_o,dut.rx_shift_reg_q,rx_i,dut.bit_cnt_q);
+      $display("time=%0t data: %b | shift reg=%b | rx_i=%b bit_cnt_q=%b | data_bit_mx=%b | rst_n_I=%b",$time, data_o,dut.rx_shift_reg_q,rx_i,dut.bit_cnt_q,dut.data_bit_max,rst_n_i);
 
     /*#100;
     $display("Sending 0x3C serially");
@@ -81,7 +77,7 @@ module tb_uart_rx;
   initial begin
     $dumpfile("uart_rx_tb.vcd");
     $dumpvars(0, tb_uart_rx);
-    #200$finish;
+    #400$finish;
   end
 
 endmodule
