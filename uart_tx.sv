@@ -19,6 +19,56 @@ module uart_tx(
   //logic [3:0]tick_cnt_q;
   logic parity_bit; //calculated parity value
   
+  
+  typedef enum logic [2:0] {
+    ST_IDLE,                           // Waiting for data_valid_i
+    ST_START,                          // Driving start bit (low)
+    ST_DATA,                           // Shifting out data bits LSB-first
+    ST_PARITY,                         // Driving calculated parity bit
+    ST_STOP                            // Driving stop bit(s) (high)
+  } tx_state_t;
+
+  tx_state_t state_q;                  // Current state (sequential)
+  tx_state_t state_d;                  // Next state    (combinational)
+  
+  
+ //current state logic
+  always@(posedge clk_i or negedge rst_n_i)
+    begin
+      if(!rst_n_i)
+        state_q<=ST_IDLE;
+      else
+        state_q<=state_d;
+    end
+  
+ //next state logic
+  always@(*)
+    begin
+      case(state_q)
+        ST_IDLE:begin
+          if(data_valid_i)
+            state_d<=ST_START;
+        end
+        ST_START:begin
+          if(baud_tick_i)
+            state_d<=ST_DATA;
+        end
+        ST_DATA:begin
+          if(bit_cnt_q==0)
+            state_d<=ST_PARITY;
+        end
+        ST_PARITY:begin
+          if(baud_tick_i)
+            state_d<=ST_DATA;
+          end
+      endcase
+    end
+  
+  
+        
+          
+            
+  
 //data index selection
   always @(posedge clk_i or negedge rst_n_i)
   begin
@@ -26,7 +76,7 @@ module uart_tx(
       bit_cnt_q<= 3'b000;
     end
     else begin
-      if (data_valid_i) begin
+      if (state_q==ST_IDLE && data_valid_i) begin
         // Load data width and start transmission
         case(data_bits_i)
           2'b00: bit_cnt_q <= 3'b100;// 5 bits
@@ -35,7 +85,7 @@ module uart_tx(
           2'b11: bit_cnt_q <= 3'b111;  // 8 bits
         endcase
       end
-      else if (bit_cnt_q >0) begin
+      else if (state_q==ST_DATA && bit_cnt_q >0) begin
         bit_cnt_q<= bit_cnt_q - 1;
       end
     end
@@ -48,13 +98,13 @@ module uart_tx(
         begin 
           parity_bit<=0;
         end
-      else if(parity_i==3'b000)
+      else if(state_q==ST_IDLE && parity_i==3'b000)
         parity_bit <= ^data_i;
-      else if(parity_i==3'b001)
+      else if(state_q==ST_IDLE && parity_i==3'b001)
         parity_bit<=~^data_i;
-      else if(parity_i==3'b010)
+      else if(state_q==ST_IDLE && parity_i==3'b010)
         parity_bit<=1'b1; //mark parity
-      else if (parity_i==3'b011)
+      else if (state_q==ST_IDLE && parity_i==3'b011)
         parity_bit<=1'b0;
     end
 
@@ -64,26 +114,37 @@ module uart_tx(
       if(!rst_n_i)
         begin
           tx_shift_reg_q<=0;
-          tx_o<=0;
-          parity_bit<=0;
+          tx_o<=1;
         end
       else 
         begin
-         if(data_valid_i)
+          case(state_q)
+            ST_IDLE:begin
+            if(data_valid_i)
           begin
             tx_shift_reg_q<=data_i;
-            tx_o <= data_i[0];
-            tx_shift_reg_q <= {1'b0, data_i[7:1]};
           end
-      	 else if(baud_tick_i && bit_cnt_q>0)
+            end
+            ST_START:begin
+      	 if(baud_tick_i)
         begin 
-          tx_o<=tx_shift_reg_q[0];
-          tx_shift_reg_q<={1'b0,tx_shift_reg_q[7:1]};
+			tx_o <= data_i[0];
+            tx_shift_reg_q<={1'b0,tx_shift_reg_q[7:1]};
         end
-      else if(baud_tick_i && bit_cnt_q==0) 
+            end
+            ST_DATA:begin
+               if(baud_tick_i && bit_cnt_q>0) 
         begin
-          tx_o<=parity_bit;
+          	tx_o <= tx_shift_reg_q[0];
+            tx_shift_reg_q<={1'b0,tx_shift_reg_q[7:1]};
         end
+            end
+            ST_PARITY:begin
+              if(baud_tick_i)begin
+              tx_o<=parity_bit;
+            end
+            end
+          endcase
     end
     end
 endmodule
