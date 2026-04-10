@@ -44,22 +44,23 @@ module uart_tx(
  //next state logic
   always@(*)
     begin
+      state_d=state_q;
       case(state_q)
         ST_IDLE:begin
           if(data_valid_i)
-            state_d<=ST_START;
+            state_d=ST_START;
         end
         ST_START:begin
           if(baud_tick_i)
-            state_d<=ST_DATA;
+            state_d=ST_DATA;
         end
         ST_DATA:begin
           if(bit_cnt_q==0)
-            state_d<=ST_PARITY;
+            state_d=ST_PARITY;
         end
         ST_PARITY:begin
           if(baud_tick_i)
-            state_d<=ST_DATA;
+            state_d=ST_DATA;
           end
       endcase
     end
