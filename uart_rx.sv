@@ -30,7 +30,7 @@ module uart_rx(
         case(data_bits_i)
           2'b00: data_bit_max <= 3'b100;  // 5 bits
           2'b01: data_bit_max <= 3'b101;  // 6 bits    
-          2'b10: data_bit_max <= 3'b110;  // 7  bits
+          2'b10: data_bit_max <= 3'b110;  // 7 bits
           2'b11: data_bit_max <= 3'b111;  // 8 bits
         endcase
       end
