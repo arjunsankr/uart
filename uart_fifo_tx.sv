@@ -2,14 +2,14 @@ module uart_tx_fifo #(
   parameter int DATA_WIDTH = 8,
   parameter int ADDR_WIDTH = 11
 )(
-  input  logic                  clk_i,
-  input  logic                  rst_n_i,
-  input  logic                  wr_en_i,
+  input  logic clk_i,
+  input  logic rst_n_i,
+  input  logic wr_en_i,
   input  logic [DATA_WIDTH-1:0] wr_data_i,
-  output logic                  full_o,
-  input  logic                  rd_en_i,
+  output logic full_o,
+  input  logic rd_en_i,
   output logic [DATA_WIDTH-1:0] rd_data_o,
-  output logic                  empty_o
+  output logic empty_o
 );
 
   logic [DATA_WIDTH-1:0] mem_q [(1<<ADDR_WIDTH)-1:0];
